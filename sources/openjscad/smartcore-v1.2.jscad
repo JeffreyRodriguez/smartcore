@@ -30,11 +30,11 @@ var _ZlmDiam; // lm6uu, lm8uu ... will be calculated from rods diam
 var _ZlmLength;
 var _nemaXYZ;  // nema 14 , nema 17
 var _XrodsWidth=60; //space between rods on X axis
-var _ZrodsWidth=100; //space between rods on Z axis
+var _ZrodsWidth=125; //space between rods on Z axis
 var XrodLength = 300; // will be calculated in main from parameters.
 var YrodLength = 300; // will be calculated in main from parameters.
 var ZrodLength = 300; // will be calculated in main from parameters.
-var _rodsSupportThickness = 3; // thickness around rods for all supports
+var _rodsSupportThickness = 4; // thickness around rods for all supports
 var outputPlateWidth = 180; //used when output to printable plates for elements
 var outputPlateDepth = 180;
 var mk7Diam = 10;
@@ -66,7 +66,7 @@ function getParameterDefinitions() {
         caption: 'What to show :',
         type: 'choice',
         values: [0,1,2,3,4,-1,5,6,7,8,9,10,11,12],
-        initial: 1,
+        initial: 8,
         captions: ["-----", //0
                     "All printer assembly", //1
                     "printed parts plate", //2
@@ -118,28 +118,33 @@ function getParameterDefinitions() {
 
 
 function zTop(){
-    var width = _ZrodsWidth+_ZrodsDiam+(_rodsSupportThickness*2)+26;
+    var width = _ZrodsWidth+_ZrodsDiam+(_rodsSupportThickness*2);
+    var boltWidth = 60;
     var height = 12;
     var depth = 24;
     var insideWidth = 28;
     var mesh = union(
             difference(
                 cube({size:[width,depth,height],center:true}),
-                // outside form left
-                cube({size:[13,depth,height],center:true}).translate([-width/2+6.5,-5,0]),
-                // outside form right
-                cube({size:[13,depth,height],center:true}).translate([width/2-6.5,-5,0]),
+
                 //screw left
-                slottedHole(4,8,depth).rotateX(90).rotateY(90).translate([-(width)/2+4,20,0]),
+                slottedHole(4,8,depth+2).rotateX(90).rotateY(90).translate([(boltWidth/2)+4,(depth/2)+1,]),
                 //screw right
-                slottedHole(4,8,depth).rotateX(90).rotateY(90).translate([(width)/2-9,20,0]),
+                slottedHole(4,8,depth+2).rotateX(90).rotateY(90).translate([-(boltWidth/2)-9,(depth/2)+1,0]),
+
+                BoltCutter_M3x30(5).rotateX(90).translate([50,30-(depth/2),0]),
+                BoltCutter_M3x30(5).rotateX(90).translate([-50,30-(depth/2),0]),
+
                 // z rod left
-                cylinder({r:_ZrodsDiam/2,h:height,fn:_globalResolution}).translate([-_ZrodsWidth/2,depth/2-12,-height/2]),
+                cylinder({r:_ZrodsDiam/2,h:height+2,fn:_globalResolution}).translate([-_ZrodsWidth/2,depth/2-12,-(height/2)-1]),
                 //z rod right
-                cylinder({r:_ZrodsDiam/2,h:height,fn:_globalResolution}).translate([_ZrodsWidth/2,depth/2-12,-height/2]),
-                // chamfer
-                roundBoolean2(10,height,"bl").rotateX(90).rotateZ(-90).translate([-width/2+22,-depth/2+9,-height/2]),
-                roundBoolean2(10,height,"bl").rotateX(90).translate([width/2-22,-depth/2+9,-height/2]),
+                cylinder({r:_ZrodsDiam/2,h:height+2,fn:_globalResolution}).translate([_ZrodsWidth/2,depth/2-12,-(height/2)-1]),
+
+                // chamfer left
+                roundBoolean2(10,height+2,"bl").rotateX(90).rotateZ(-90).translate([-(width/2)+9,-depth/2+9,-(height/2)-1]),
+
+                // chamfer right
+                roundBoolean2(10,height+2,"bl").rotateX(90).translate([(width/2)-9,-depth/2+9,-(height/2)-1]),
                 // inside form
                 difference(
                     cube({size:[insideWidth,8,height],center:true}).translate([3,-5.5,0]),
@@ -157,10 +162,11 @@ function zTop(){
 
 
 function zBottom(){
-    var width = _ZrodsWidth+_ZrodsDiam+(_rodsSupportThickness*2)+26;
+    var width = _ZrodsWidth+_ZrodsDiam+(_rodsSupportThickness*2);
+    var boltWidth = 100;
     var height = 10;
     var depth = 22;
-    var inside_cut_x = _ZrodsWidth-_ZrodsDiam-_rodsSupportThickness*2;
+    var inside_cut_x = min((width/2)-10, _ZrodsWidth-_ZrodsDiam-_rodsSupportThickness*2);
 
 
     var mesh =  difference(
@@ -171,20 +177,42 @@ function zBottom(){
                 ),
 
             // inside form
-            nemaHole(_nemaXYZ).rotateX(90).translate([0,0,_nemaXYZ/2-height/2]),
-            cube({size:[inside_cut_x,depth,height],center:true}).translate([0,10,0]),
-            // outside form left
-            cube({size:[13,depth,height],center:true}).translate([-width/2+6.5,-5,0]),
-            // outside form right
-            cube({size:[13,depth,height],center:true}).translate([width/2-6.5,-5,0]),
+            nemaHole(_nemaXYZ).rotateX(90).translate([0,1,_nemaXYZ/2-height/2]),
+
+            difference(
+                cube({size:[inside_cut_x,depth,height+3],center:true}).translate([0,10,-1]),
+
+                // chamfer left
+                roundBoolean2(10,height+4,"bl").rotateX(90).rotateZ(-90).translate([-(inside_cut_x/2)+9.9,8.9,-(height/2)-2]),
+
+                // chamfer right
+                roundBoolean2(10,height+4,"bl").rotateX(90).translate([(inside_cut_x/2)-9.9,8.9,-(height/2)-2])
+            ),
+
+
+            // chamfer near outer left
+            roundBoolean2(10,height+2,"bl").rotateX(90).rotateZ(-90).translate([-(width/4)+9.9,-depth+8.9,-(height/2)-1]),
+
+            // chamfer near outer right
+            roundBoolean2(10,height+2,"bl").rotateX(90).translate([(width/4)-9.9,-depth+8.9,-(height/2)-1]),
+
+
+            // chamfer far outer left
+            roundBoolean2(10,height+2,"bl").rotateX(90).rotateZ(-90).translate([-(width/2)+9.9,-depth/2+8.9,-(height/2)-1]),
+
+            // chamfer far outer right
+            roundBoolean2(10,height+2,"bl").rotateX(90).translate([(width/2)-9.9,-depth/2+8.9,-(height/2)-1]),
+
             // z rod left
-            cylinder({r:_ZrodsDiam/2,h:height,fn:_globalResolution}).translate([-_ZrodsWidth/2,depth/2-12,-height/2]),
+            cylinder({r:_ZrodsDiam/2,h:height+2,fn:_globalResolution}).translate([-_ZrodsWidth/2,depth/2-12,-(height/2)-1]),
             //z rod right
-            cylinder({r:_ZrodsDiam/2,h:height,fn:_globalResolution}).translate([_ZrodsWidth/2,depth/2-12,-height/2]),
+            cylinder({r:_ZrodsDiam/2,h:height+2,fn:_globalResolution}).translate([_ZrodsWidth/2,depth/2-12,-(height/2)-1]),
 
             // screws attach holes
-            cylinder({r:2,h:5,fn:_globalResolution}).rotateX(-90).translate([width/2-5,depth/2-5,0]),
-            cylinder({r:2,h:5,fn:_globalResolution}).rotateX(-90).translate([-width/2+5,depth/2-5,0])
+            BoltCutter_M3x30(5).rotateX(90).translate([(boltWidth/2),30-(depth/2),0]),
+            BoltCutter_M3x30(5).rotateX(90).translate([-(boltWidth/2),30-(depth/2),0])
+            //cylinder({r:2,h:5,fn:_globalResolution}).rotateX(-90).translate([(boltWidth/2)-5,depth/2-5,0]),
+            //cylinder({r:2,h:5,fn:_globalResolution}).rotateX(-90).translate([-(boltWidth/2)+5,depth/2-5,0])
 
         );
     return mesh;
@@ -514,7 +542,7 @@ function HeadAttachHoles(length){
     return union(holes);
 }
 
-function BoltCutter_M3x30() {
+function BoltCutter_M3x30(extraNut) {
     var boltRadius = 1.9;
     var boltLength = 32.75;
     var boltHeadLength = 2.9;
@@ -533,7 +561,7 @@ function BoltCutter_M3x30() {
             .translate([0,0,0]),
 
         // Nut
-        cylinder({r:screwNutRadius,h:screwNutHeight+1,fn:6})
+        cylinder({r:screwNutRadius,h:screwNutHeight+extraNut+1,fn:6})
             .translate([0,0,boltLength-nutHeight])
     ).translate([0,0,-boltHeadLength-1]);
 }
