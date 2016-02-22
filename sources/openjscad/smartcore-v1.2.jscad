@@ -66,7 +66,7 @@ function getParameterDefinitions() {
         caption: 'What to show :',
         type: 'choice',
         values: [0,1,2,3,4,-1,5,6,7,8,9,10,11,12],
-        initial: 8,
+        initial: 11,
         captions: ["-----", //0
                     "All printer assembly", //1
                     "printed parts plate", //2
@@ -572,14 +572,14 @@ function HeadAttachScrewAndNut(){
 }
 
 function AccessoryInductorSupport() {
-    var inductorDiameter = 17.9;
-    var inductorWall = 7;
+    var inductorDiameter = 17.85;
+    var inductorWall = 5;
 
-    var X = inductorDiameter + 15;
+    var X = inductorDiameter + 14;
     var Y = inductorDiameter + inductorWall;
-    var Z = 20;
+    var Z = 30;
 
-    var inductorOffsetY = (inductorDiameter/2)+0.25;
+    var inductorOffsetY = (inductorDiameter/2)+1;
 
     return difference(
 
@@ -589,7 +589,11 @@ function AccessoryInductorSupport() {
 
         SensorAttachHoles()
             .mirroredY()
-            .translate([0,30,Z/2]),
+            .translate([0,30,Z - (Z/4)]),
+
+        SensorAttachHoles()
+            .mirroredY()
+            .translate([0,30,Z/4]),
 
          // Sensor Body Hole
          cylinder({r:inductorDiameter/2,h:Z+2,fn:_globalResolution})
@@ -1632,7 +1636,7 @@ switch(output){
 
 
 
-    break;
+        break;
     case 2:
 
         res = [
@@ -1664,7 +1668,7 @@ switch(output){
 
             res = makeplate(res);
 
-    break;
+        break;
     case 3:
         res = [
             motorXY("left").translate([-_globalWidth/2,-_globalDepth/2,_globalHeight-20]).setColor(0.3,0.9,0.3),
@@ -1689,7 +1693,7 @@ switch(output){
             res.push(extruder().rotateX(90).rotateZ(180).translate([_globalWidth/2-25,-_globalDepth/2+50,_globalHeight-90]));
 
 
-    break;
+        break;
     case 4:
         res = [
             wallSizeText(),
@@ -1697,27 +1701,27 @@ switch(output){
             rodsLengthText(),
             _rods()
         ];
-    break;
+        break;
     case 5:
         res = [motorXY("left"), motorXY("right").mirroredX().translate([-40,0,0])];
-    break;
+        break;
     case 6:
         res = [bearingsXY("left"),bearingsXY("right").mirroredX().translate([-40,0,0]) ];
-    break;
+        break;
     case 7:
         res = [slideY("left").setColor(0.3,0.9,0.3), slideY("right").mirroredX().translate([-10,0,0])];
-    break;
+        break;
     case 8:
         res = [zTop(), zBottom().translate([0,0,50])];
-    break;
+        break;
     case 9:
         res = zBottom();
-    break;
+        break;
     case 10:
         res = [
         slideZ2()
             ];
-    break;
+        break;
     case 11:
         res = [
             head(),
@@ -1725,14 +1729,17 @@ switch(output){
             HeadSupportE3Dv6().rotateZ(180).translate([_XYlmLength+6,-5,4.0])
             //HeadSupportJhead().rotateZ(180).translate([_XYlmLength+6,-1,4.5])
             ];
-    break;
+        break;
     case 12:
         res = [ extruder(0),extruder(1).rotateX(180).translate([60,0,0])
         ];
-    break;
+        break;
+    case 13:
+        res =
+        break;
 
     default:
-    break;
+        break;
 }
 
 return res;
